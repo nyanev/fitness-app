@@ -14,11 +14,21 @@ class HealthService {
     HealthDataType.BODY_FAT_PERCENTAGE,
   ];
 
+  static const _sleepTypes = [
+    HealthDataType.SLEEP_ASLEEP,
+    HealthDataType.SLEEP_DEEP,
+    HealthDataType.SLEEP_REM,
+    HealthDataType.SLEEP_LIGHT,
+  ];
+
   static const _dashboardTypes = [
     HealthDataType.HEART_RATE,
     HealthDataType.BLOOD_PRESSURE_SYSTOLIC,
     HealthDataType.BLOOD_PRESSURE_DIASTOLIC,
     HealthDataType.SLEEP_ASLEEP,
+    HealthDataType.SLEEP_DEEP,
+    HealthDataType.SLEEP_REM,
+    HealthDataType.SLEEP_LIGHT,
     HealthDataType.WORKOUT,
   ];
 
@@ -65,11 +75,18 @@ class HealthService {
           .toList()
         ..sort((a, b) => a.date.compareTo(b.date));
 
+      // HealthKit stores body fat as a fraction (0–1); convert to percentage.
       final fatHistory = data
           .where((p) =>
               p.type == HealthDataType.BODY_FAT_PERCENTAGE &&
               p.value is NumericHealthValue)
-          .map((p) => toEntry(p, '%'))
+          .map((p) => HealthEntry(
+                date: DateTime(
+                    p.dateFrom.year, p.dateFrom.month, p.dateFrom.day),
+                value: (p.value as NumericHealthValue).numericValue.toDouble() *
+                    100,
+                unit: '%',
+              ))
           .toList()
         ..sort((a, b) => a.date.compareTo(b.date));
 
@@ -141,9 +158,9 @@ class HealthService {
       }
       bpHistory.sort((a, b) => a.date.compareTo(b.date));
 
-      // Sleep segments
+      // Sleep segments — collect all actual sleep stages (not in-bed/awake/out-of-bed).
       final sleepHistory = data
-          .where((p) => p.type == HealthDataType.SLEEP_ASLEEP)
+          .where((p) => _sleepTypes.contains(p.type))
           .map((p) => SleepEntry(start: p.dateFrom, end: p.dateTo))
           .where((e) => e.duration.inMinutes > 0)
           .toList()
