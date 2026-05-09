@@ -9,6 +9,7 @@ class MetricCard extends StatelessWidget {
   final Color accentColor;
   final IconData icon;
   final bool isLoading;
+  final VoidCallback? onTap;
 
   const MetricCard({
     super.key,
@@ -19,10 +20,22 @@ class MetricCard extends StatelessWidget {
     required this.accentColor,
     required this.icon,
     this.isLoading = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: _buildContent(context),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -103,7 +116,6 @@ class MetricCard extends StatelessWidget {
       ),
     );
   }
-
   Widget _shimmer() {
     return Container(
       height: 44,
