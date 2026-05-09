@@ -13,6 +13,9 @@ class AppColors {
   static const fatColor = Color(0xFF00D9A6);
   static const success = Color(0xFF34C759);
   static const warning = Color(0xFFFF9F0A);
+  static const heartRateColor = Color(0xFFFF453A);
+  static const sleepColor = Color(0xFF5E5CE6);
+  static const workoutColor = Color(0xFF34C759);
 }
 
 class AppTheme {

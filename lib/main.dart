@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'screens/health_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/workouts_screen.dart';
 import 'screens/schedule_screen.dart';
@@ -37,6 +38,7 @@ class _MainShellState extends State<MainShell> {
 
   static const List<Widget> _screens = [
     HomeScreen(),
+    HealthScreen(),
     WorkoutsScreen(),
     ScheduleScreen(),
   ];
@@ -56,6 +58,11 @@ class _MainShellState extends State<MainShell> {
             icon: Icon(Icons.monitor_weight_outlined),
             activeIcon: Icon(Icons.monitor_weight),
             label: 'Metrics',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_outline),
+            activeIcon: Icon(Icons.favorite),
+            label: 'Health',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.fitness_center_outlined),

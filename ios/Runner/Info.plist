@@ -24,6 +24,10 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>This app reads your weight, heart rate, blood pressure, sleep, and workout data from Health to display your fitness metrics.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>This app may write health data to Apple Health.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
