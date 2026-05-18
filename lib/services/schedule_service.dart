@@ -61,6 +61,20 @@ class ScheduleService {
     return mod;
   }
 
+  /// Sets the anchor so that the current calendar week maps to [slotIndex].
+  /// Call with 0 to mark this week as "Week A", 1 for "Week B", etc.
+  Future<void> setCurrentWeekAsSlot(int slotIndex) async {
+    final thisMonday = _mondayOf(_normalise(DateTime.now()));
+    final anchor = thisMonday.subtract(Duration(days: 7 * slotIndex));
+    await _storeAnchorMonday(anchor);
+  }
+
+  /// Returns which cycle slot today falls on for the given [cycleLength].
+  Future<int> getCurrentCycleSlotForToday(int cycleLength) async {
+    final anchor = await getScheduleAnchorMonday();
+    return cycleSlotForDate(_normalise(DateTime.now()), anchor, cycleLength);
+  }
+
   /// Moves the anchor forward one week (everything shifts in the calendar).
   Future<void> shiftScheduleForwardOneWeek() async {
     final current = await getScheduleAnchorMonday();
@@ -109,6 +123,16 @@ class ScheduleService {
     await db.delete('schedule_entries', where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<void> updateScheduleEntryDay(String id, int dayOfWeek) async {
+    final db = await _db;
+    await db.update(
+      'schedule_entries',
+      {'day_of_week': dayOfWeek},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   bool _entryMatchesDate(
     ScheduleEntry entry,
     DateTime date,
@@ -120,6 +144,66 @@ class ScheduleService {
         entry.cycleIndex;
   }
 
+  // ── Schedule exceptions (per-occurrence overrides) ────────────────────
+
+  Future<void> addSkipException({
+    required String entryId,
+    required DateTime originalDate,
+  }) async {
+    final db = await _db;
+    await db.insert(
+      'schedule_exceptions',
+      {
+        'id': _uuid.v4(),
+        'entry_id': entryId,
+        'original_date': _normalise(originalDate).millisecondsSinceEpoch,
+        'new_date': null,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> addMoveException({
+    required String entryId,
+    required DateTime originalDate,
+    required DateTime newDate,
+  }) async {
+    final db = await _db;
+    await db.insert(
+      'schedule_exceptions',
+      {
+        'id': _uuid.v4(),
+        'entry_id': entryId,
+        'original_date': _normalise(originalDate).millisecondsSinceEpoch,
+        'new_date': _normalise(newDate).millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> removeException({
+    required String entryId,
+    required DateTime originalDate,
+  }) async {
+    final db = await _db;
+    await db.delete(
+      'schedule_exceptions',
+      where: 'entry_id = ? AND original_date = ?',
+      whereArgs: [entryId, _normalise(originalDate).millisecondsSinceEpoch],
+    );
+  }
+
+  Future<Map<String, Map<DateTime, ScheduleException>>> _getExceptionsMap() async {
+    final db = await _db;
+    final rows = await db.query('schedule_exceptions');
+    final result = <String, Map<DateTime, ScheduleException>>{};
+    for (final row in rows) {
+      final exc = ScheduleException.fromMap(row);
+      result.putIfAbsent(exc.entryId, () => {})[exc.originalDate] = exc;
+    }
+    return result;
+  }
+
   // ── Upcoming calculation ───────────────────────────────────────────────
 
   Future<List<UpcomingWorkout>> getUpcomingWorkouts({int days = 28}) async {
@@ -128,15 +212,36 @@ class ScheduleService {
 
     final anchor = await getScheduleAnchorMonday();
     final today = _normalise(DateTime.now());
+    final exceptionsMap = await _getExceptionsMap();
     final upcoming = <UpcomingWorkout>[];
+    final addedMovedKeys = <String>{};
 
     for (int i = 0; i < days; i++) {
       final date = today.add(Duration(days: i));
 
       for (final entry in entries) {
-        if (_entryMatchesDate(entry, date, anchor)) {
+        if (!_entryMatchesDate(entry, date, anchor)) continue;
+
+        final exc = exceptionsMap[entry.id]?[date];
+
+        if (exc == null) {
           upcoming.add(UpcomingWorkout(date: date, entry: entry));
+        } else if (exc.newDate != null) {
+          final newDate = _normalise(exc.newDate!);
+          final key = '${entry.id}_${newDate.millisecondsSinceEpoch}';
+          final inWindow = !newDate.isBefore(today) &&
+              newDate.isBefore(today.add(Duration(days: days)));
+          if (inWindow && !addedMovedKeys.contains(key)) {
+            upcoming.add(UpcomingWorkout(
+              date: newDate,
+              entry: entry,
+              isMoved: true,
+              originalDate: date,
+            ));
+            addedMovedKeys.add(key);
+          }
         }
+        // Skip exception: do not add
       }
     }
 

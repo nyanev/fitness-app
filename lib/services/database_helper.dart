@@ -172,6 +172,16 @@ class DatabaseHelper {
         value TEXT NOT NULL
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS schedule_exceptions (
+        id TEXT PRIMARY KEY,
+        entry_id TEXT NOT NULL,
+        original_date INTEGER NOT NULL,
+        new_date INTEGER,
+        UNIQUE(entry_id, original_date)
+      )
+    ''');
   }
 
   /// Adds [cycle_length] / [cycle_index] and back-fills from legacy [week_pattern]

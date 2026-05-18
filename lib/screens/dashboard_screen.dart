@@ -3,8 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import '../models/body_composition_entry.dart';
 import '../models/health_entry.dart';
+import '../models/schedule.dart';
 import '../services/body_composition_service.dart';
 import '../services/health_service.dart';
+import '../services/schedule_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/body_composition_import.dart';
 import '../widgets/metric_card.dart';
@@ -24,10 +26,12 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final _healthService = HealthService();
   final _composition = BodyCompositionService.instance;
+  final _scheduleService = ScheduleService.instance;
 
   BodyMetrics _metrics = BodyMetrics.empty;
   List<BodyCompositionEntry> _entries = [];
   HealthDashboardData _healthData = HealthDashboardData.empty;
+  List<UpcomingWorkout> _upcoming = [];
   _LoadState _state = _LoadState.idle;
   String _errorMessage = '';
 
@@ -40,7 +44,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _load() async {
     setState(() => _state = _LoadState.loading);
     try {
-      final local = await _composition.listEntries();
+      final results = await Future.wait([
+        _composition.listEntries(),
+        _scheduleService.getUpcomingWorkouts(days: 7),
+      ]);
+      final local = results[0] as List<BodyCompositionEntry>;
+      final upcoming = results[1] as List<UpcomingWorkout>;
+
       var metrics = bodyMetricsFromEntries(local);
 
       final granted = await _healthService.requestPermissions();
@@ -58,6 +68,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _entries = local;
         _metrics = metrics;
         _healthData = healthData;
+        _upcoming = upcoming;
         _state = _LoadState.loaded;
       });
     } catch (e) {
@@ -299,10 +310,124 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_upcoming.isNotEmpty) _buildUpcomingSection(),
         _buildBodyCompositionSection(),
         if (!_healthData.isEmpty) _buildHealthSection(),
         const SizedBox(height: 40),
       ],
+    );
+  }
+
+  Widget _buildUpcomingSection() {
+    final shown = _upcoming.take(1).toList();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'UPCOMING TRAINING',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontSize: 11,
+                  letterSpacing: 1.4,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              children: [
+                for (int i = 0; i < shown.length; i++) ...[
+                  if (i > 0)
+                    const Divider(height: 1, color: AppColors.divider, indent: 16),
+                  _buildUpcomingRow(shown[i]),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpcomingRow(UpcomingWorkout w) {
+    final isToday = w.isToday;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 44,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  DateFormat('EEE').format(w.date).toUpperCase(),
+                  style: TextStyle(
+                    color: isToday ? AppColors.accent : AppColors.textSecondary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Text(
+                  DateFormat('d').format(w.date),
+                  style: TextStyle(
+                    color: isToday ? AppColors.accent : AppColors.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    height: 1.15,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  w.entry.templateName,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (w.isMoved) ...[
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Moved',
+                    style: TextStyle(color: AppColors.warning, fontSize: 12),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (isToday)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'Today',
+                style: TextStyle(
+                  color: AppColors.accent,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 

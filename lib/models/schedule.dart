@@ -123,7 +123,18 @@ class UpcomingWorkout {
   final DateTime date;
   final ScheduleEntry entry;
 
-  const UpcomingWorkout({required this.date, required this.entry});
+  /// True when this occurrence was moved from [originalDate] via an exception.
+  final bool isMoved;
+
+  /// The date the recurring rule originally placed this workout (set when [isMoved]).
+  final DateTime? originalDate;
+
+  const UpcomingWorkout({
+    required this.date,
+    required this.entry,
+    this.isMoved = false,
+    this.originalDate,
+  });
 
   bool get isToday {
     final now = DateTime.now();
@@ -131,4 +142,42 @@ class UpcomingWorkout {
         date.month == now.month &&
         date.day == now.day;
   }
+}
+
+/// A one-off override for a single occurrence of a [ScheduleEntry].
+/// - [newDate] == null  → skip this occurrence entirely.
+/// - [newDate] != null  → move it to that date.
+class ScheduleException {
+  final String id;
+  final String entryId;
+  final DateTime originalDate;
+  final DateTime? newDate;
+
+  const ScheduleException({
+    required this.id,
+    required this.entryId,
+    required this.originalDate,
+    this.newDate,
+  });
+
+  bool get isSkip => newDate == null;
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'entry_id': entryId,
+        'original_date': originalDate.millisecondsSinceEpoch,
+        'new_date': newDate?.millisecondsSinceEpoch,
+      };
+
+  factory ScheduleException.fromMap(Map<String, dynamic> map) =>
+      ScheduleException(
+        id: map['id'] as String,
+        entryId: map['entry_id'] as String,
+        originalDate: DateTime.fromMillisecondsSinceEpoch(
+          map['original_date'] as int,
+        ),
+        newDate: map['new_date'] == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(map['new_date'] as int),
+      );
 }
