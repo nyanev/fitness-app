@@ -7,10 +7,12 @@ import '../models/schedule.dart';
 import '../services/body_composition_service.dart';
 import '../services/health_service.dart';
 import '../services/schedule_service.dart';
+import '../services/workout_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/body_composition_import.dart';
 import '../widgets/metric_card.dart';
 import '../widgets/body_composition_overview_chart.dart';
+import 'active_workout_screen.dart';
 import 'add_body_composition_screen.dart';
 import 'health_metric_detail_screen.dart';
 
@@ -27,6 +29,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final _healthService = HealthService();
   final _composition = BodyCompositionService.instance;
   final _scheduleService = ScheduleService.instance;
+  final _workoutService = WorkoutService.instance;
 
   BodyMetrics _metrics = BodyMetrics.empty;
   List<BodyCompositionEntry> _entries = [];
@@ -306,6 +309,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Future<void> _startWorkout(UpcomingWorkout w) async {
+    final template = await _workoutService.getWorkoutTemplate(w.entry.templateId);
+    if (!mounted) return;
+    if (template == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Workout template no longer exists')),
+      );
+      return;
+    }
+    if (template.exercises.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Add exercises to this workout first')),
+      );
+      return;
+    }
+
+    final activeSession = await _workoutService.getActiveSession();
+    if (!mounted) return;
+    if (activeSession != null) {
+      final abandon = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppColors.card,
+          title: const Text('Active Workout',
+              style: TextStyle(color: AppColors.textPrimary)),
+          content: Text(
+            'You have an active "${activeSession.templateName}" workout. Abandon it?',
+            style: const TextStyle(color: AppColors.textSecondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel',
+                  style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
+              child: const Text('Abandon & Start'),
+            ),
+          ],
+        ),
+      );
+      if (abandon != true) return;
+      await _workoutService.abandonSession(activeSession.id);
+    }
+
+    if (!mounted) return;
+    final session = await _workoutService.startWorkoutSession(template);
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ActiveWorkoutScreen(session: session)),
+    );
+  }
+
   Widget _buildLoaded() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -357,76 +416,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildUpcomingRow(UpcomingWorkout w) {
     final isToday = w.isToday;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 44,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  DateFormat('EEE').format(w.date).toUpperCase(),
-                  style: TextStyle(
-                    color: isToday ? AppColors.accent : AppColors.textSecondary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
+    return InkWell(
+      onTap: () => _startWorkout(w),
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 44,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    DateFormat('EEE').format(w.date).toUpperCase(),
+                    style: TextStyle(
+                      color: isToday ? AppColors.accent : AppColors.textSecondary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                ),
-                Text(
-                  DateFormat('d').format(w.date),
-                  style: TextStyle(
-                    color: isToday ? AppColors.accent : AppColors.textPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    height: 1.15,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  w.entry.templateName,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                if (w.isMoved) ...[
-                  const SizedBox(height: 2),
-                  const Text(
-                    'Moved',
-                    style: TextStyle(color: AppColors.warning, fontSize: 12),
+                  Text(
+                    DateFormat('d').format(w.date),
+                    style: TextStyle(
+                      color: isToday ? AppColors.accent : AppColors.textPrimary,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      height: 1.15,
+                    ),
                   ),
                 ],
-              ],
-            ),
-          ),
-          if (isToday)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
-                'Today',
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    w.entry.templateName,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  if (w.isMoved) ...[
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Moved',
+                      style: TextStyle(color: AppColors.warning, fontSize: 12),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (isToday)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                child: const Text(
+                  'Today',
+                  style: TextStyle(
+                    color: AppColors.accent,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              )
+            else
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.divider,
+                size: 18,
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
