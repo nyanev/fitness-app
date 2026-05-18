@@ -3,7 +3,7 @@ import 'package:path/path.dart';
 
 class DatabaseHelper {
   static const String _databaseName = 'fitness_app.db';
-  static const int _databaseVersion = 4;
+  static const int _databaseVersion = 5;
 
   static DatabaseHelper? _instance;
   static Database? _database;
@@ -129,6 +129,9 @@ class DatabaseHelper {
     if (oldVersion < 4) {
       await _createBodyCompositionTable(db);
     }
+    if (oldVersion < 5) {
+      await _insertAdditionalExercises(db);
+    }
   }
 
   Future<void> _createBodyCompositionTable(Database db) async {
@@ -241,6 +244,70 @@ class DatabaseHelper {
         'name': name,
         'muscle_group': group,
       });
+    }
+    await batch.commit(noResult: true);
+    await _insertAdditionalExercises(db);
+  }
+
+  Future<void> _insertAdditionalExercises(Database db) async {
+    const exercises = [
+      // Chest
+      ('push_up_default', 'Push-up', 'Chest'),
+      ('dumbbell_fly_default', 'Dumbbell Fly', 'Chest'),
+      ('decline_bench_default', 'Decline Bench Press', 'Chest'),
+      ('pec_deck_default', 'Pec Deck', 'Chest'),
+      // Back
+      ('tbar_row_default', 'T-Bar Row', 'Back'),
+      ('single_arm_row_default', 'Single-Arm Dumbbell Row', 'Back'),
+      ('chin_up_default', 'Chin-up', 'Back'),
+      ('hyperextension_default', 'Hyperextension', 'Back'),
+      ('good_morning_default', 'Good Morning', 'Back'),
+      // Legs
+      ('bulgarian_split_squat_default', 'Bulgarian Split Squat', 'Legs'),
+      ('lunges_default', 'Lunges', 'Legs'),
+      ('hip_thrust_default', 'Hip Thrust', 'Legs'),
+      ('hack_squat_default', 'Hack Squat', 'Legs'),
+      ('nordic_curl_default', 'Nordic Curl', 'Legs'),
+      ('glute_bridge_default', 'Glute Bridge', 'Legs'),
+      // Shoulders
+      ('arnold_press_default', 'Arnold Press', 'Shoulders'),
+      ('rear_delt_fly_default', 'Rear Delt Fly', 'Shoulders'),
+      ('upright_row_default', 'Upright Row', 'Shoulders'),
+      ('front_raise_default', 'Front Raise', 'Shoulders'),
+      ('cable_lateral_raise_default', 'Cable Lateral Raise', 'Shoulders'),
+      // Biceps
+      ('barbell_curl_default', 'Barbell Curl', 'Biceps'),
+      ('preacher_curl_default', 'Preacher Curl', 'Biceps'),
+      ('cable_curl_default', 'Cable Curl', 'Biceps'),
+      ('concentration_curl_default', 'Concentration Curl', 'Biceps'),
+      // Triceps
+      ('tricep_pushdown_default', 'Tricep Pushdown', 'Triceps'),
+      ('overhead_tricep_ext_default', 'Overhead Tricep Extension', 'Triceps'),
+      ('close_grip_bench_default', 'Close-Grip Bench Press', 'Triceps'),
+      ('diamond_pushup_default', 'Diamond Push-up', 'Triceps'),
+      // Core
+      ('leg_raise_default', 'Leg Raise', 'Core'),
+      ('hanging_knee_raise_default', 'Hanging Knee Raise', 'Core'),
+      ('bicycle_crunch_default', 'Bicycle Crunch', 'Core'),
+      ('dead_bug_default', 'Dead Bug', 'Core'),
+      ('cable_crunch_default', 'Cable Crunch', 'Core'),
+      ('side_plank_default', 'Side Plank', 'Core'),
+      // Cardio
+      ('running_default', 'Running', 'Cardio'),
+      ('cycling_default', 'Cycling', 'Cardio'),
+      ('jump_rope_default', 'Jump Rope', 'Cardio'),
+      ('rowing_machine_default', 'Rowing Machine', 'Cardio'),
+      ('stair_climber_default', 'Stair Climber', 'Cardio'),
+      ('swimming_default', 'Swimming', 'Cardio'),
+    ];
+
+    final batch = db.batch();
+    for (final (id, name, group) in exercises) {
+      batch.insert(
+        'exercises',
+        {'id': id, 'name': name, 'muscle_group': group},
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
     await batch.commit(noResult: true);
   }

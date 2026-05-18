@@ -26,7 +26,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   health: fe206e65f13a9b88623605fbd8af8f029e23dc35
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
 

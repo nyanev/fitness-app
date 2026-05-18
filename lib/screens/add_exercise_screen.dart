@@ -199,10 +199,34 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
     return grouped;
   }
 
+  Future<void> _showCreateExerciseSheet() async {
+    final created = await showModalBottomSheet<Exercise>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => _CreateExerciseSheet(service: _service),
+    );
+
+    if (created != null && mounted) {
+      await _load();
+      await _showConfigSheet(created);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showCreateExerciseSheet,
+        backgroundColor: AppColors.accent,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Custom'),
+      ),
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
@@ -317,7 +341,53 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
     );
   }
 
+  static IconData _iconForMuscleGroup(String? group) {
+    switch (group?.toLowerCase()) {
+      case 'chest':
+        return Icons.sports_handball_rounded;
+      case 'back':
+        return Icons.rowing_rounded;
+      case 'legs':
+        return Icons.directions_run_rounded;
+      case 'shoulders':
+        return Icons.sports_volleyball_rounded;
+      case 'biceps':
+      case 'triceps':
+        return Icons.fitness_center_rounded;
+      case 'core':
+        return Icons.self_improvement_rounded;
+      case 'cardio':
+        return Icons.favorite_rounded;
+      default:
+        return Icons.fitness_center_rounded;
+    }
+  }
+
+  static Color _colorForMuscleGroup(String? group) {
+    switch (group?.toLowerCase()) {
+      case 'chest':
+        return const Color(0xFFFF6B6B);
+      case 'back':
+        return const Color(0xFF4ECDC4);
+      case 'legs':
+        return const Color(0xFF45B7D1);
+      case 'shoulders':
+        return const Color(0xFFFFD93D);
+      case 'biceps':
+        return const Color(0xFFA78BFA);
+      case 'triceps':
+        return const Color(0xFF6EE7B7);
+      case 'core':
+        return const Color(0xFFFB923C);
+      case 'cardio':
+        return const Color(0xFFF472B6);
+      default:
+        return AppColors.accent;
+    }
+  }
+
   Widget _buildExerciseTile(Exercise exercise) {
+    final iconColor = _colorForMuscleGroup(exercise.muscleGroup);
     return GestureDetector(
       onTap: () => _showConfigSheet(exercise),
       child: Container(
@@ -333,12 +403,12 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.12),
+                color: iconColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(
-                Icons.fitness_center_rounded,
-                color: AppColors.accent,
+              child: Icon(
+                _iconForMuscleGroup(exercise.muscleGroup),
+                color: iconColor,
                 size: 18,
               ),
             ),
@@ -370,6 +440,144 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               Icons.add_circle_outline,
               color: AppColors.accent,
               size: 22,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Create custom exercise sheet ──────────────────────────────────────────
+
+class _CreateExerciseSheet extends StatefulWidget {
+  final WorkoutService service;
+  const _CreateExerciseSheet({required this.service});
+
+  @override
+  State<_CreateExerciseSheet> createState() => _CreateExerciseSheetState();
+}
+
+class _CreateExerciseSheetState extends State<_CreateExerciseSheet> {
+  final _nameController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  String? _selectedGroup;
+
+  static const _muscleGroups = [
+    'Chest', 'Back', 'Legs', 'Shoulders',
+    'Biceps', 'Triceps', 'Core', 'Cardio', 'Other',
+  ];
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'New Exercise',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            TextFormField(
+              controller: _nameController,
+              autofocus: true,
+              style: const TextStyle(color: AppColors.textPrimary),
+              decoration: InputDecoration(
+                labelText: 'Exercise name',
+                labelStyle: const TextStyle(color: AppColors.textSecondary),
+                filled: true,
+                fillColor: AppColors.card,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Enter a name' : null,
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _selectedGroup,
+              dropdownColor: AppColors.card,
+              style: const TextStyle(color: AppColors.textPrimary),
+              decoration: InputDecoration(
+                labelText: 'Muscle group (optional)',
+                labelStyle: const TextStyle(color: AppColors.textSecondary),
+                filled: true,
+                fillColor: AppColors.card,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+              items: _muscleGroups
+                  .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+                  .toList(),
+              onChanged: (v) => setState(() => _selectedGroup = v),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () async {
+                  if (!_formKey.currentState!.validate()) return;
+                  final nav = Navigator.of(context);
+                  final exercise = await widget.service.createExercise(
+                    _nameController.text.trim(),
+                    muscleGroup: _selectedGroup,
+                  );
+                  if (mounted) nav.pop(exercise);
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Create Exercise',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
             ),
           ],
         ),
