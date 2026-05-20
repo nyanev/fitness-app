@@ -22,7 +22,9 @@ struct WorkoutView: View {
                     .padding(.trailing, 2)
             }
         }
-        .sensoryFeedback(.start, trigger: manager.hapticRestStart)
-        .sensoryFeedback(.success, trigger: manager.hapticTimerEnd)
+        .sensoryFeedback(.impact(weight: .heavy, intensity: 1.0), trigger: manager.hapticRestStart)
+        .sensoryFeedback(.impact(weight: .heavy, intensity: 1.0), trigger: manager.hapticTimerEnd)
+        .sensoryFeedback(.impact(weight: .heavy, intensity: 1.0), trigger: manager.hapticTimerEnd2)
+        .sensoryFeedback(.impact(weight: .heavy, intensity: 1.0), trigger: manager.hapticTimerEnd3)
     }
 }

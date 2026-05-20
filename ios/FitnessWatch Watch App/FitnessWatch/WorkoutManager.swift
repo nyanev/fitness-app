@@ -26,6 +26,8 @@ final class WorkoutManager: NSObject, ObservableObject {
     // Haptic triggers — views observe these with .sensoryFeedback
     @Published var hapticRestStart = false
     @Published var hapticTimerEnd = false
+    @Published var hapticTimerEnd2 = false
+    @Published var hapticTimerEnd3 = false
 
     // MARK: - Private
 
@@ -147,6 +149,12 @@ final class WorkoutManager: NSObject, ObservableObject {
         let shouldAdvance = shouldAdvanceOnRestEnd
         stopRestTimer()
         if shouldAdvance { nextExercise() }
+        Task {
+            try? await Task.sleep(for: .milliseconds(350))
+            hapticTimerEnd2.toggle()
+            try? await Task.sleep(for: .milliseconds(350))
+            hapticTimerEnd3.toggle()
+        }
     }
 
     private func stopRestTimer() {
