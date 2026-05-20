@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/workout.dart';
+import '../services/health_service.dart';
 import '../services/workout_service.dart';
 import '../theme/app_theme.dart';
 
@@ -200,7 +201,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
     _restTimer?.cancel();
     _elapsedTimer?.cancel();
-    await _service.completeSession(widget.session.id);
+    final completed = await _service.completeSession(widget.session.id);
+    HealthService().writeCompletedWorkout(completed);
     if (mounted) Navigator.pop(context);
   }
 

@@ -1,5 +1,6 @@
 import 'package:health/health.dart';
 import '../models/health_entry.dart';
+import '../models/workout.dart';
 
 class HealthService {
   static final HealthService _instance = HealthService._internal();
@@ -42,8 +43,35 @@ class HealthService {
   Future<bool> requestPermissions() async {
     try {
       await _configure();
-      return await _health.requestAuthorization(
-        [..._bodyTypes, ..._dashboardTypes],
+      final readTypes = [..._bodyTypes, ..._dashboardTypes];
+      final permissions = List<HealthDataAccess>.filled(
+        readTypes.length,
+        HealthDataAccess.READ,
+      );
+      // Request WRITE for WORKOUT so we can log completed sessions.
+      final workoutIndex = readTypes.indexOf(HealthDataType.WORKOUT);
+      if (workoutIndex != -1) {
+        permissions[workoutIndex] = HealthDataAccess.READ_WRITE;
+      }
+      return await _health.requestAuthorization(readTypes, permissions: permissions);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Writes a completed [WorkoutSession] to Apple Health as a strength-training
+  /// workout. Returns true on success, false if the write failed or was skipped.
+  Future<bool> writeCompletedWorkout(WorkoutSession session) async {
+    final end = session.completedAt;
+    if (end == null) return false;
+    try {
+      await _configure();
+      return await _health.writeWorkoutData(
+        activityType: HealthWorkoutActivityType.TRADITIONAL_STRENGTH_TRAINING,
+        start: session.startedAt,
+        end: end,
+        title: session.templateName,
+        recordingMethod: RecordingMethod.manual,
       );
     } catch (_) {
       return false;
