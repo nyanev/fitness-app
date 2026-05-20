@@ -743,7 +743,7 @@ class _WeightField extends StatelessWidget {
             suffixText: 'kg',
             suffixStyle: const TextStyle(color: AppColors.textSecondary),
           ),
-          onChanged: (v) => onChanged(double.tryParse(v)),
+          onChanged: (v) => onChanged(double.tryParse(v.replaceAll(',', '.'))),
         ),
       ],
     );

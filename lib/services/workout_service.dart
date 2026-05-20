@@ -314,6 +314,25 @@ class WorkoutService {
     return result;
   }
 
+  Future<void> updateSetResult(
+    String id, {
+    required int reps,
+    required double weight,
+  }) async {
+    final db = await _db;
+    await db.update(
+      'set_results',
+      {'reps': reps, 'weight': weight},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> deleteSetResult(String id) async {
+    final db = await _db;
+    await db.delete('set_results', where: 'id = ?', whereArgs: [id]);
+  }
+
   Future<WorkoutSession?> getActiveSession() async {
     final db = await _db;
     final sessionMaps = await db.query(

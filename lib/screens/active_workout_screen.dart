@@ -89,7 +89,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   Future<void> _logSet() async {
     final weightText = _weightController.text.trim();
     final repsText = _repsController.text.trim();
-    final weight = double.tryParse(weightText) ?? 0.0;
+    final weight = double.tryParse(weightText.replaceAll(',', '.')) ?? 0.0;
     final reps = int.tryParse(repsText);
 
     if (reps == null || reps <= 0) {
