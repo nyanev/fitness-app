@@ -40,16 +40,33 @@ struct ExerciseSetView: View {
                     .disabled(session.isLastExercise)
                 }
 
-                // Name + target
+                // Exercise name
                 Text(exercise.name)
                     .font(.headline)
                     .minimumScaleFactor(0.75)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
 
-                Text(exercise.displayTarget)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                // Reps adjuster
+                adjRow(
+                    label: "\(session.currentReps) reps",
+                    onMinus: { manager.adjustReps(delta: -1) },
+                    onPlus: { manager.adjustReps(delta: 1) }
+                )
+
+                // Weight adjuster
+                adjRow(
+                    label: session.currentWeight > 0 ? weightLabel(session.currentWeight) : "BW",
+                    onMinus: { manager.adjustWeight(delta: -0.5) },
+                    onPlus: { manager.adjustWeight(delta: 0.5) }
+                )
+
+                // Rest adjuster
+                adjRow(
+                    label: "\(session.currentRestSeconds)s rest",
+                    onMinus: { manager.adjustRestDefault(delta: -5) },
+                    onPlus: { manager.adjustRestDefault(delta: 5) }
+                )
 
                 // Set progress dots
                 HStack(spacing: 5) {
@@ -89,12 +106,48 @@ struct ExerciseSetView: View {
                 .foregroundStyle(.red)
             }
             .padding(.horizontal, 4)
-            .padding(.top, 28)   // leave room for HR chip
+            .padding(.top, 28)
         }
         .confirmationDialog("Finish Workout?", isPresented: $showFinish, titleVisibility: .visible) {
             Button("Finish", role: .destructive) { manager.finishWorkout() }
             Button("Cancel", role: .cancel) {}
         }
+    }
+
+    @ViewBuilder
+    private func adjRow(label: String, onMinus: @escaping () -> Void, onPlus: @escaping () -> Void) -> some View {
+        HStack(spacing: 4) {
+            Button(action: onMinus) {
+                Image(systemName: "minus")
+                    .font(.caption2.bold())
+                    .frame(width: 22, height: 22)
+            }
+            .buttonStyle(.bordered)
+            .tint(.secondary)
+
+            Spacer()
+
+            Text(label)
+                .font(.caption)
+                .monospacedDigit()
+                .minimumScaleFactor(0.8)
+
+            Spacer()
+
+            Button(action: onPlus) {
+                Image(systemName: "plus")
+                    .font(.caption2.bold())
+                    .frame(width: 22, height: 22)
+            }
+            .buttonStyle(.bordered)
+            .tint(.secondary)
+        }
+    }
+
+    private func weightLabel(_ w: Double) -> String {
+        w.truncatingRemainder(dividingBy: 1) == 0
+            ? "\(Int(w))kg"
+            : String(format: "%.1fkg", w)
     }
 
     private var elapsedString: String {

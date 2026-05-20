@@ -9,7 +9,7 @@ struct RestTimerView: View {
     }
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             ZStack {
                 Circle()
                     .stroke(Color.secondary.opacity(0.2), lineWidth: 7)
@@ -33,11 +33,25 @@ struct RestTimerView: View {
             }
             .frame(width: 90, height: 90)
 
-            Button("Skip") {
-                manager.skipRest()
+            HStack(spacing: 10) {
+                Button("-15s") {
+                    manager.adjustActiveRest(delta: -15)
+                }
+                .buttonStyle(.bordered)
+                .font(.caption2)
+
+                Button("Skip") {
+                    manager.skipRest()
+                }
+                .buttonStyle(.bordered)
+                .font(.footnote)
+
+                Button("+15s") {
+                    manager.adjustActiveRest(delta: 15)
+                }
+                .buttonStyle(.bordered)
+                .font(.caption2)
             }
-            .buttonStyle(.bordered)
-            .font(.footnote)
         }
     }
 

@@ -72,8 +72,10 @@ final class WorkoutManager: NSObject, ObservableObject {
 
     func completeSet() {
         guard var session = activeSession, !isResting else { return }
-        let exercise = session.currentExercise
         let setNumber = session.setsCompletedForCurrent + 1
+        let reps = session.currentReps
+        let weight = session.currentWeight
+        let restSecs = session.currentRestSeconds
         session.setsCompleted[session.currentExerciseIndex] += 1
         activeSession = session
 
@@ -82,12 +84,38 @@ final class WorkoutManager: NSObject, ObservableObject {
             "sessionId": session.id,
             "exerciseIndex": session.currentExerciseIndex,
             "setNumber": setNumber,
-            "reps": exercise.targetReps,
-            "weight": exercise.targetWeight ?? 0.0,
+            "reps": reps,
+            "weight": weight,
         ] as [String: Any])
 
         let advance = session.isCurrentExerciseDone && !session.isLastExercise
-        startRestTimer(seconds: exercise.restSeconds, advanceAfter: advance)
+        startRestTimer(seconds: restSecs, advanceAfter: advance)
+    }
+
+    func adjustReps(delta: Int) {
+        guard var session = activeSession else { return }
+        let idx = session.currentExerciseIndex
+        session.actualReps[idx] = max(1, session.actualReps[idx] + delta)
+        activeSession = session
+    }
+
+    func adjustWeight(delta: Double) {
+        guard var session = activeSession else { return }
+        let idx = session.currentExerciseIndex
+        session.actualWeight[idx] = max(0, (session.actualWeight[idx] + delta * 2).rounded() / 2)
+        activeSession = session
+    }
+
+    func adjustRestDefault(delta: Int) {
+        guard var session = activeSession else { return }
+        let idx = session.currentExerciseIndex
+        session.actualRestSeconds[idx] = max(15, session.actualRestSeconds[idx] + delta)
+        activeSession = session
+    }
+
+    func adjustActiveRest(delta: Int) {
+        restSecondsRemaining = max(0, restSecondsRemaining + delta)
+        restTotalSeconds = max(restTotalSeconds, restSecondsRemaining)
     }
 
     func skipRest() {

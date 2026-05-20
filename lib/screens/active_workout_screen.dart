@@ -149,6 +149,15 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     });
   }
 
+  void _adjustRest(int delta) {
+    setState(() {
+      _restSecondsLeft = (_restSecondsLeft + delta).clamp(0, 3600);
+      if (_restSecondsLeft > _restTotalSeconds) {
+        _restTotalSeconds = _restSecondsLeft;
+      }
+    });
+  }
+
   void _nextExercise() {
     if (_isLastExercise) return;
     _restTimer?.cancel();
@@ -682,6 +691,22 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   ),
                 ),
                 const Spacer(),
+                TextButton(
+                  onPressed: () => _adjustRest(-15),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    foregroundColor: AppColors.textSecondary,
+                  ),
+                  child: const Text('-15s'),
+                ),
+                TextButton(
+                  onPressed: () => _adjustRest(15),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    foregroundColor: AppColors.textSecondary,
+                  ),
+                  child: const Text('+15s'),
+                ),
                 TextButton(
                   onPressed: _skipRest,
                   style: TextButton.styleFrom(
