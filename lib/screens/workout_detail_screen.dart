@@ -463,6 +463,55 @@ class _StepperField extends StatelessWidget {
     required this.onChanged,
   });
 
+  Future<void> _pickValue(BuildContext context) async {
+    final controller = TextEditingController(text: '$value');
+    final result = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.card,
+        title: Text(label,
+            style: const TextStyle(color: AppColors.textPrimary)),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          style: const TextStyle(color: AppColors.textPrimary),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.surface,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          ),
+          onSubmitted: (v) {
+            final n = int.tryParse(v);
+            if (n != null) Navigator.pop(ctx, n.clamp(min, max));
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          FilledButton(
+            onPressed: () {
+              final n = int.tryParse(controller.text);
+              if (n != null) Navigator.pop(ctx, n.clamp(min, max));
+            },
+            style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (result != null) onChanged(result);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -487,13 +536,18 @@ class _StepperField extends StatelessWidget {
                 disabledColor: AppColors.textSecondary,
               ),
               Expanded(
-                child: Text(
-                  '$value',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
+                child: GestureDetector(
+                  onTap: () => _pickValue(context),
+                  child: Text(
+                    '$value',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColors.textSecondary,
+                    ),
                   ),
                 ),
               ),
