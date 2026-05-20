@@ -225,6 +225,76 @@ class WorkoutService {
     );
   }
 
+  // Creates a session with a caller-supplied ID and timestamp (used by the Watch).
+  Future<WorkoutSession> startWorkoutSessionWithId({
+    required WorkoutTemplate template,
+    required String sessionId,
+    required DateTime startedAt,
+  }) async {
+    final db = await _db;
+    await db.insert('workout_sessions', {
+      'id': sessionId,
+      'template_id': template.id,
+      'template_name': template.name,
+      'started_at': startedAt.millisecondsSinceEpoch,
+      'status': 'active',
+    });
+
+    final sessionExercises = <SessionExercise>[];
+    for (final te in template.exercises) {
+      final seId = _uuid.v4();
+      final se = SessionExercise(
+        id: seId,
+        sessionId: sessionId,
+        exerciseId: te.exerciseId,
+        exerciseName: te.exerciseName,
+        targetSets: te.sets,
+        targetReps: te.reps,
+        targetWeight: te.weight,
+        restSeconds: te.restSeconds,
+        orderIndex: te.orderIndex,
+        completedSets: [],
+      );
+      await db.insert('session_exercises', se.toMap());
+      sessionExercises.add(se);
+    }
+
+    return WorkoutSession(
+      id: sessionId,
+      templateId: template.id,
+      templateName: template.name,
+      startedAt: startedAt,
+      status: SessionStatus.active,
+      exercises: sessionExercises,
+    );
+  }
+
+  // Records a set identified by exercise order index (the Watch doesn't know session-exercise UUIDs).
+  Future<void> recordSetByExerciseIndex({
+    required String sessionId,
+    required int exerciseIndex,
+    required int setNumber,
+    required int reps,
+    required double weight,
+  }) async {
+    final db = await _db;
+    final rows = await db.query(
+      'session_exercises',
+      columns: ['id'],
+      where: 'session_id = ?',
+      whereArgs: [sessionId],
+      orderBy: 'order_index ASC',
+    );
+    if (exerciseIndex >= rows.length) return;
+    final sessionExerciseId = rows[exerciseIndex]['id'] as String;
+    await recordSet(
+      sessionExerciseId: sessionExerciseId,
+      setNumber: setNumber,
+      reps: reps,
+      weight: weight,
+    );
+  }
+
   Future<SetResult> recordSet({
     required String sessionExerciseId,
     required int setNumber,

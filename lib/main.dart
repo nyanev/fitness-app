@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/workouts_screen.dart';
 import 'screens/schedule_screen.dart';
+import 'services/watch_service.dart';
+import 'services/workout_service.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -34,6 +36,24 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WatchService.instance.init();
+    _syncWatch();
+  }
+
+  @override
+  void dispose() {
+    WatchService.instance.dispose();
+    super.dispose();
+  }
+
+  Future<void> _syncWatch() async {
+    final templates = await WorkoutService.instance.getWorkoutTemplates();
+    WatchService.instance.syncTemplates(templates);
+  }
 
   static const List<Widget> _screens = [
     DashboardScreen(),
