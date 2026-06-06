@@ -1,0 +1,1 @@
+- [Project Design System State](project_design_system_state.md) — Full AppColors inventory, all known inline-color violations by file/line, duplication violations; outcome of 2026-06-06 comprehensive audit

@@ -143,7 +143,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: FilledButton.styleFrom(
-                backgroundColor: Colors.red.shade700,
+                backgroundColor: AppColors.destructive,
               ),
               child: const Text('Abandon & Start'),
             ),
@@ -196,7 +196,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         heroTag: 'fab_schedule',
         onPressed: _showAddEntrySheet,
         backgroundColor: AppColors.accent,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: AppColors.onAccent),
       ),
     );
   }
@@ -320,11 +320,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       children: [
         Text(
           'UPCOMING',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontSize: 11,
-                letterSpacing: 1.4,
-                fontWeight: FontWeight.w700,
-              ),
+          style: Theme.of(context).textTheme.labelSmall,
         ),
         const SizedBox(height: 12),
         ...weeks.map(
@@ -625,11 +621,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   },
                   icon: const Icon(
                     Icons.remove_circle_outline_rounded,
-                    color: Colors.red,
+                    color: AppColors.destructive,
                   ),
                   label: const Text(
                     'Skip this workout',
-                    style: TextStyle(color: Colors.red),
+                    style: TextStyle(color: AppColors.destructive),
                   ),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -765,7 +761,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                 child: Text(
                                   label,
                                   style: TextStyle(
-                                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                                    color: isSelected ? AppColors.onAccent : AppColors.textSecondary,
                                     fontSize: 12,
                                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
                                   ),
@@ -811,7 +807,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           ),
                           child: const Text(
                             'Delete entry',
-                            style: TextStyle(color: Colors.red, fontSize: 15),
+                            style:
+                                TextStyle(color: AppColors.destructive, fontSize: 15),
                           ),
                         ),
                       ),
@@ -1225,7 +1222,7 @@ class _AddEntrySheetState extends State<_AddEntrySheet> {
               child: Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                  color: isSelected ? AppColors.onAccent : AppColors.textSecondary,
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
                 ),

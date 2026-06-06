@@ -96,7 +96,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Enter a valid number of reps'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.destructive,
         ),
       );
       return;
@@ -239,7 +239,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
-              backgroundColor: Colors.red.shade700,
+              backgroundColor: AppColors.destructive,
             ),
             child: const Text('Abandon'),
           ),
@@ -482,13 +482,13 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   ? const Icon(
                       Icons.check_rounded,
                       size: 14,
-                      color: Colors.white,
+                      color: AppColors.onAccent,
                     )
                   : Text(
                       '$setNum',
                       style: TextStyle(
                         color: isCurrent
-                            ? Colors.white
+                            ? AppColors.onAccent
                             : AppColors.textSecondary,
                         fontWeight: FontWeight.w600,
                         fontSize: 12,

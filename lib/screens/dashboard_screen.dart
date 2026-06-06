@@ -10,6 +10,7 @@ import '../services/schedule_service.dart';
 import '../services/workout_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/body_composition_import.dart';
+import '../utils/health_display_utils.dart';
 import '../widgets/metric_card.dart';
 import '../widgets/body_composition_overview_chart.dart';
 import 'active_workout_screen.dart';
@@ -153,7 +154,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accent,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.onAccent,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -282,7 +283,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         children: [
           const SizedBox(height: 60),
-          const Icon(Icons.error_outline, size: 64, color: Colors.redAccent),
+          const Icon(Icons.error_outline, size: 64, color: AppColors.destructive),
           const SizedBox(height: 20),
           Text('Something went wrong',
               style: Theme.of(context).textTheme.titleLarge),
@@ -297,7 +298,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onPressed: _load,
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.accent,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.onAccent,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14)),
@@ -346,7 +347,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.destructive),
               child: const Text('Abandon & Start'),
             ),
           ],
@@ -387,11 +388,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Text(
             'UPCOMING TRAINING',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontSize: 11,
-                  letterSpacing: 1.4,
-                  fontWeight: FontWeight.w700,
-                ),
+            style: Theme.of(context).textTheme.labelSmall,
           ),
           const SizedBox(height: 10),
           Container(
@@ -528,7 +525,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               label: const Text('Import paste'),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.accent,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.onAccent,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(
@@ -557,11 +554,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String? weightChange;
     String? fatChange;
     if (_metrics.weightHistory.length >= 2) {
-      weightChange = _get7DayChange(_metrics.weightHistory,
+      weightChange = sevenDayChange(_metrics.weightHistory,
           (v) => '${v.toStringAsFixed(1)} kg');
     }
     if (_metrics.bodyFatHistory.length >= 2) {
-      fatChange = _get7DayChange(_metrics.bodyFatHistory,
+      fatChange = sevenDayChange(_metrics.bodyFatHistory,
           (v) => '${v.toStringAsFixed(1)}%');
     }
 
@@ -684,7 +681,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildSleepCard() {
-    final byNight = _groupSleepByNight(_healthData.sleepHistory);
+    final byNight = groupSleepByNight(_healthData.sleepHistory);
     if (byNight.isEmpty) return const SizedBox.shrink();
 
     final sortedNights = byNight.entries.toList()
@@ -743,34 +740,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
-  }
-
-  String? _get7DayChange(
-      List<HealthEntry> entries, String Function(double) fmt) {
-    if (entries.length < 2) return null;
-    final recent = entries.reversed.toList();
-    final latest = recent.first.value;
-    final older = recent.firstWhere(
-      (e) => recent.first.date.difference(e.date).inDays >= 7,
-      orElse: () => recent.last,
-    );
-    final diff = latest - older.value;
-    if (diff.abs() < 0.01) return 'No change in 7 days';
-    final sign = diff > 0 ? '+' : '';
-    return '$sign${fmt(diff)} in 7 days';
-  }
-
-  Map<DateTime, Duration> _groupSleepByNight(List<SleepEntry> entries) {
-    final byNight = <DateTime, Duration>{};
-    for (final e in entries) {
-      final end = e.end;
-      final night = end.hour < 12
-          ? DateTime(end.year, end.month, end.day)
-              .subtract(const Duration(days: 1))
-          : DateTime(end.year, end.month, end.day);
-      byNight[night] = (byNight[night] ?? Duration.zero) + e.duration;
-    }
-    return byNight;
   }
 
   String _hoursDecimal(Duration d) =>

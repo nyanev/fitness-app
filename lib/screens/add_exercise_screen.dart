@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/workout.dart';
 import '../services/workout_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/workout_form_fields.dart';
 
 class AddExerciseScreen extends StatefulWidget {
   final String templateId;
@@ -113,7 +114,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: _StepperField(
+                    child: StepperField(
                       label: 'Sets',
                       value: sets,
                       min: 1,
@@ -123,7 +124,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _StepperField(
+                    child: StepperField(
                       label: 'Reps',
                       value: reps,
                       min: 1,
@@ -137,14 +138,14 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: _WeightField(
+                    child: WeightField(
                       controller: weightController,
                       onChanged: (v) => weight = v,
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _RestTimeSelector(
+                    child: RestTimeSelector(
                       value: restSeconds,
                       onChanged: (v) => setModalState(() => restSeconds = v),
                     ),
@@ -223,7 +224,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreateExerciseSheet,
         backgroundColor: AppColors.accent,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.onAccent,
         icon: const Icon(Icons.add_rounded),
         label: const Text('Custom'),
       ),
@@ -366,21 +367,21 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
   static Color _colorForMuscleGroup(String? group) {
     switch (group?.toLowerCase()) {
       case 'chest':
-        return const Color(0xFFFF6B6B);
+        return AppColors.muscleChest;
       case 'back':
-        return const Color(0xFF4ECDC4);
+        return AppColors.muscleBack;
       case 'legs':
-        return const Color(0xFF45B7D1);
+        return AppColors.muscleLegs;
       case 'shoulders':
-        return const Color(0xFFFFD93D);
+        return AppColors.muscleShoulders;
       case 'biceps':
-        return const Color(0xFFA78BFA);
+        return AppColors.muscleBiceps;
       case 'triceps':
-        return const Color(0xFF6EE7B7);
+        return AppColors.muscleTriceps;
       case 'core':
-        return const Color(0xFFFB923C);
+        return AppColors.muscleCore;
       case 'cardio':
-        return const Color(0xFFF472B6);
+        return AppColors.muscleCardio;
       default:
         return AppColors.accent;
     }
@@ -586,221 +587,3 @@ class _CreateExerciseSheetState extends State<_CreateExerciseSheet> {
   }
 }
 
-// ── Shared form widgets ────────────────────────────────────────────────────
-
-class _StepperField extends StatelessWidget {
-  final String label;
-  final int value;
-  final int min;
-  final int max;
-  final ValueChanged<int> onChanged;
-
-  const _StepperField({
-    required this.label,
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.onChanged,
-  });
-
-  Future<void> _pickValue(BuildContext context) async {
-    final controller = TextEditingController(text: '$value');
-    final result = await showDialog<int>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.card,
-        title: Text(label,
-            style: const TextStyle(color: AppColors.textPrimary)),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          style: const TextStyle(color: AppColors.textPrimary),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.surface,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          ),
-          onSubmitted: (v) {
-            final n = int.tryParse(v);
-            if (n != null) Navigator.pop(ctx, n.clamp(min, max));
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          FilledButton(
-            onPressed: () {
-              final n = int.tryParse(controller.text);
-              if (n != null) Navigator.pop(ctx, n.clamp(min, max));
-            },
-            style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (result != null) onChanged(result);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: value > min ? () => onChanged(value - 1) : null,
-                icon: const Icon(Icons.remove, size: 18),
-                color: AppColors.textPrimary,
-                disabledColor: AppColors.textSecondary,
-              ),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _pickValue(context),
-                  child: Text(
-                    '$value',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      decoration: TextDecoration.underline,
-                      decorationColor: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: value < max ? () => onChanged(value + 1) : null,
-                icon: const Icon(Icons.add, size: 18),
-                color: AppColors.textPrimary,
-                disabledColor: AppColors.textSecondary,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _WeightField extends StatelessWidget {
-  final TextEditingController controller;
-  final ValueChanged<double?> onChanged;
-
-  const _WeightField({
-    required this.controller,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Weight (kg)',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          keyboardType:
-              const TextInputType.numberWithOptions(decimal: true),
-          style: const TextStyle(color: AppColors.textPrimary),
-          decoration: InputDecoration(
-            hintText: 'Optional',
-            hintStyle: const TextStyle(color: AppColors.textSecondary),
-            filled: true,
-            fillColor: AppColors.card,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-            suffixText: 'kg',
-            suffixStyle: const TextStyle(color: AppColors.textSecondary),
-          ),
-          onChanged: (v) => onChanged(double.tryParse(v.replaceAll(',', '.'))),
-        ),
-      ],
-    );
-  }
-}
-
-class _RestTimeSelector extends StatelessWidget {
-  final int value;
-  final ValueChanged<int> onChanged;
-
-  static const _options = [
-    (30, '30s'),
-    (45, '45s'),
-    (60, '1 min'),
-    (90, '1m 30s'),
-    (120, '2 min'),
-    (180, '3 min'),
-  ];
-
-  const _RestTimeSelector({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    final currentValue =
-        _options.any((o) => o.$1 == value) ? value : _options[2].$1;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Rest Time',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<int>(
-          value: currentValue,
-          dropdownColor: AppColors.card,
-          style: const TextStyle(color: AppColors.textPrimary),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.card,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          ),
-          items: _options
-              .map(
-                (o) => DropdownMenuItem(value: o.$1, child: Text(o.$2)),
-              )
-              .toList(),
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
-        ),
-      ],
-    );
-  }
-}

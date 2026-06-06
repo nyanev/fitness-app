@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/health_entry.dart';
 import '../services/health_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/health_display_utils.dart';
 import '../widgets/metric_card.dart';
 import '../widgets/trend_chart.dart';
 
@@ -185,7 +186,7 @@ class _HealthScreenState extends State<HealthScreen> {
             onPressed: _load,
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.accent,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.onAccent,
               padding:
                   const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(
@@ -204,7 +205,7 @@ class _HealthScreenState extends State<HealthScreen> {
       child: Column(
         children: [
           const SizedBox(height: 60),
-          const Icon(Icons.error_outline, size: 64, color: Colors.redAccent),
+          const Icon(Icons.error_outline, size: 64, color: AppColors.destructive),
           const SizedBox(height: 20),
           Text('Something went wrong',
               style: Theme.of(context).textTheme.titleLarge),
@@ -217,7 +218,7 @@ class _HealthScreenState extends State<HealthScreen> {
             onPressed: _load,
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.accent,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.onAccent,
               padding:
                   const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(
@@ -422,7 +423,7 @@ class _HealthScreenState extends State<HealthScreen> {
   }
 
   Widget _buildSleepSection() {
-    final byNight = _groupSleepByNight(_data.sleepHistory);
+    final byNight = groupSleepByNight(_data.sleepHistory);
     if (byNight.isEmpty) return const SizedBox.shrink();
 
     final sortedNights = byNight.entries.toList()
@@ -574,21 +575,6 @@ class _HealthScreenState extends State<HealthScreen> {
         ),
       ],
     );
-  }
-
-  // Groups SLEEP_ASLEEP segments into nightly totals.
-  // Segments ending before noon are attributed to the previous calendar day.
-  Map<DateTime, Duration> _groupSleepByNight(List<SleepEntry> entries) {
-    final byNight = <DateTime, Duration>{};
-    for (final e in entries) {
-      final end = e.end;
-      final night = end.hour < 12
-          ? DateTime(end.year, end.month, end.day)
-              .subtract(const Duration(days: 1))
-          : DateTime(end.year, end.month, end.day);
-      byNight[night] = (byNight[night] ?? Duration.zero) + e.duration;
-    }
-    return byNight;
   }
 
   String _formatDuration(Duration d) {

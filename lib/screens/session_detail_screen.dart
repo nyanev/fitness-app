@@ -375,7 +375,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
-        child: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+        child: const Icon(Icons.delete_outline, color: AppColors.destructive, size: 20),
       ),
       onDismissed: (_) => _deleteSet(exerciseIdx, setIdx),
       child: InkWell(

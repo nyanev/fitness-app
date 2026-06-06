@@ -134,7 +134,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: FilledButton.styleFrom(
-                backgroundColor: Colors.red.shade700,
+                backgroundColor: AppColors.destructive,
               ),
               child: const Text('Abandon & Start New'),
             ),
@@ -184,7 +184,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
         heroTag: 'fab_workouts',
         onPressed: _createTemplate,
         backgroundColor: AppColors.accent,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: AppColors.onAccent),
       ),
     );
   }
@@ -291,12 +291,12 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
       background: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.red.shade900,
+          color: AppColors.destructive,
           borderRadius: BorderRadius.circular(16),
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete_rounded, color: Colors.white),
+        child: const Icon(Icons.delete_rounded, color: AppColors.onAccent),
       ),
       confirmDismiss: (_) => showDialog<bool>(
         context: context,
@@ -321,7 +321,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: FilledButton.styleFrom(
-                backgroundColor: Colors.red.shade700,
+                backgroundColor: AppColors.destructive,
               ),
               child: const Text('Delete'),
             ),

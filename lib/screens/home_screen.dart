@@ -7,6 +7,7 @@ import '../services/body_composition_service.dart';
 import '../services/health_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/body_composition_import.dart';
+import '../utils/health_display_utils.dart';
 import '../widgets/metric_card.dart';
 import '../widgets/history_tile.dart';
 import '../widgets/body_composition_overview_chart.dart';
@@ -75,20 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _formatWeight(double kg) => '${kg.toStringAsFixed(1)} kg';
   String _formatFat(double pct) => '${pct.toStringAsFixed(1)}%';
-
-  String? _get7DayChange(List<HealthEntry> entries, String Function(double) fmt) {
-    if (entries.length < 2) return null;
-    final recent = entries.reversed.toList();
-    final latest = recent.first.value;
-    final older = recent.firstWhere(
-      (e) => recent.first.date.difference(e.date).inDays >= 7,
-      orElse: () => recent.last,
-    );
-    final diff = latest - older.value;
-    if (diff.abs() < 0.01) return 'No change in 7 days';
-    final sign = diff > 0 ? '+' : '';
-    return '$sign${fmt(diff)} in 7 days';
-  }
 
   Color _chartColor(BodyChartMetric m) {
     return switch (m) {
@@ -172,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accent,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.onAccent,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -365,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: _openAdd,
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.accent,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.onAccent,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -389,7 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           const SizedBox(height: 60),
-          const Icon(Icons.error_outline, size: 64, color: Colors.redAccent),
+          const Icon(Icons.error_outline, size: 64, color: AppColors.destructive),
           const SizedBox(height: 20),
           Text('Something went wrong',
               style: Theme.of(context).textTheme.titleLarge),
@@ -404,7 +391,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: _load,
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.accent,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.onAccent,
               padding:
                   const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(
@@ -453,7 +440,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   label: const Text('Import paste'),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.accent,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColors.onAccent,
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -491,7 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     value: weight?.value.toStringAsFixed(1),
                     unit: 'kg',
                     subtitle: weight != null
-                        ? _get7DayChange(_metrics.weightHistory, _formatWeight)
+                        ? sevenDayChange(_metrics.weightHistory, _formatWeight)
                         : null,
                     accentColor: AppColors.weightColor,
                     icon: Icons.monitor_weight_outlined,
@@ -504,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     value: fat?.value.toStringAsFixed(1),
                     unit: '%',
                     subtitle: fat != null
-                        ? _get7DayChange(
+                        ? sevenDayChange(
                             _metrics.bodyFatHistory, _formatFat)
                         : null,
                     accentColor: AppColors.fatColor,

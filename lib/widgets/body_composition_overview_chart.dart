@@ -3,11 +3,6 @@ import 'package:intl/intl.dart' as intl;
 import '../models/body_composition_entry.dart';
 import '../theme/app_theme.dart';
 
-/// Overview chart: RGB primaries for clear distinction on dark background.
-const Color _chartWeightBlue = Color(0xFF448AFF);
-const Color _chartFatRed = Color(0xFFFF5252);
-const Color _chartMuscleGreen = Color(0xFF69F0AE);
-
 /// Overlays weight (kg), body fat %, and skeletal muscle (kg if any row has kg,
 /// otherwise %) on one chart. Each series is scaled to its own min–max in the
 /// visible window so shapes are comparable; see legend for real values.
@@ -45,21 +40,21 @@ class BodyCompositionOverviewChart extends StatelessWidget {
       _Series.fromValues(
         label: 'Weight',
         unit: 'kg',
-        color: _chartWeightBlue,
+        color: AppColors.chartWeight,
         values: weightVals,
       ),
       if (fatVals.any((v) => v != null))
         _Series.fromValues(
           label: 'Body fat',
           unit: '%',
-          color: _chartFatRed,
+          color: AppColors.chartFat,
           values: fatVals,
         ),
       if (muscleVals.any((v) => v != null))
         _Series.fromValues(
           label: useMuscleKg ? 'Muscle (kg)' : 'Muscle (%)',
           unit: useMuscleKg ? 'kg' : '%',
-          color: _chartMuscleGreen,
+          color: AppColors.chartMuscle,
           values: muscleVals,
         ),
     ];

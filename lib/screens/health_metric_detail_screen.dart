@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/health_entry.dart';
 import '../theme/app_theme.dart';
+import '../widgets/delta_badge.dart';
 
 class HealthMetricDetailScreen extends StatelessWidget {
   final String title;
@@ -88,44 +89,12 @@ class HealthMetricDetailScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   trailing: delta != null && delta.abs() >= 0.01
-                      ? _DeltaBadge(delta: delta, unit: unit)
+                      ? DeltaBadge(
+                          delta: delta, unit: unit, spaceBeforeUnit: true)
                       : null,
                 );
               },
             ),
-    );
-  }
-}
-
-class _DeltaBadge extends StatelessWidget {
-  final double delta;
-  final String unit;
-
-  const _DeltaBadge({required this.delta, required this.unit});
-
-  @override
-  Widget build(BuildContext context) {
-    final isPositive = delta > 0;
-    final color = isPositive ? Colors.redAccent : Colors.greenAccent;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-          color: color,
-          size: 12,
-        ),
-        const SizedBox(width: 2),
-        Text(
-          '${delta.abs().toStringAsFixed(1)} $unit',
-          style: TextStyle(
-            color: color,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
     );
   }
 }
