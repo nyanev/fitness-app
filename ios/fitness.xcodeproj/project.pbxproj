@@ -18,6 +18,7 @@
 		AAD9A5646EEB065B505C1895 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77404C66D675B2A9D6818CD6 /* Pods_RunnerTests.framework */; };
 		E2493D772FBDC51D00D1F89B /* FitnessWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = E2493D6D2FBDC51B00D1F89B /* FitnessWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E2493D912FBDC57300D1F89B /* WatchBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2493D902FBDC57300D1F89B /* WatchBridge.swift */; };
+		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,6 +88,7 @@
 		E2493D6D2FBDC51B00D1F89B /* FitnessWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FitnessWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2493D902FBDC57300D1F89B /* WatchBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchBridge.swift; sourceTree = "<group>"; };
 		F154476206AC261C08986C03 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
+		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -116,6 +118,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
 				33AAF35EBE0C6CF0A2379A03 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -150,6 +153,7 @@
 		9740EEB11CF90186004384FC /* Flutter */ = {
 			isa = PBXGroup;
 			children = (
+				78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */,
 				3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */,
 				9740EEB21CF90195004384FC /* Debug.xcconfig */,
 				7AFA3C8E1D35360C0083082E /* Release.xcconfig */,
@@ -233,6 +237,9 @@
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		97C146ED1CF9000F007C117D /* Runner */ = {
+			packageProductDependencies = (
+				78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */,
+			);
 			isa = PBXNativeTarget;
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
@@ -283,6 +290,9 @@
 
 /* Begin PBXProject section */
 		97C146E61CF9000F007C117D /* Project object */ = {
+			packageReferences = (
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
+			);
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
@@ -456,7 +466,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nWATCH_TARGET=\"FitnessWatch Watch App\"\nWATCH_OUT=\"${BUILD_DIR}/${CONFIGURATION}-watchos\"\nWATCH_APP=\"${WATCH_OUT}/${WATCH_TARGET}.app\"\nEMBED_SRC=\"${BUILT_PRODUCTS_DIR}/${WATCH_TARGET}.app\"\necho \"Building Watch app for watchOS SDK...\"\nxcodebuild \\\n    -project \"${SRCROOT}/fitness.xcodeproj\" \\\n    -target \"${WATCH_TARGET}\" \\\n    -sdk watchos \\\n    -configuration \"${CONFIGURATION}\" \\\n    BUILD_DIR=\"${BUILD_DIR}\" \\\n    CONFIGURATION_BUILD_DIR=\"${WATCH_OUT}\" \\\n    OBJROOT=\"${BUILD_DIR}/intermediates-watchos\" \\\n    CODE_SIGN_STYLE=Automatic \\\n    DEVELOPMENT_TEAM=\"${DEVELOPMENT_TEAM}\" \\\n    COMPILER_INDEX_STORE_ENABLE=NO \\\n    -allowProvisioningUpdates \\\n    2>&1 | grep -E \"(error:|Build succeeded|Build FAILED)\" || true\nif [ -d \"${WATCH_APP}\" ]; then\n    echo \"Replacing Watch app with watchOS build...\"\n    rm -rf \"${EMBED_SRC}\"\n    cp -R \"${WATCH_APP}\" \"${EMBED_SRC}\"\nelse\n    echo \"error: watchOS Watch app not found at ${WATCH_APP}\" >&2\n    exit 1\nfi\n";
+			shellScript = "set -e\nWATCH_TARGET=\"FitnessWatch Watch App\"\nWATCH_OUT=\"${BUILD_DIR}/${CONFIGURATION}-watchos\"\nWATCH_APP=\"${WATCH_OUT}/${WATCH_TARGET}.app\"\nEMBED_SRC=\"${BUILT_PRODUCTS_DIR}/${WATCH_TARGET}.app\"\necho \"Building Watch app for watchOS SDK...\"\nenv -i PATH=\"$PATH\" HOME=\"$HOME\" USER=\"$USER\" LOGNAME=\"$LOGNAME\" TMPDIR=\"$TMPDIR\" SHELL=\"$SHELL\" LANG=\"$LANG\" DEVELOPER_DIR=\"$DEVELOPER_DIR\" \\\n    xcodebuild \\\n    -project \"${SRCROOT}/fitness.xcodeproj\" \\\n    -target \"${WATCH_TARGET}\" \\\n    -sdk watchos \\\n    -configuration \"${CONFIGURATION}\" \\\n    BUILD_DIR=\"${BUILD_DIR}\" \\\n    CONFIGURATION_BUILD_DIR=\"${WATCH_OUT}\" \\\n    OBJROOT=\"${BUILD_DIR}/intermediates-watchos\" \\\n    CODE_SIGN_STYLE=Automatic \\\n    DEVELOPMENT_TEAM=\"${DEVELOPMENT_TEAM}\" \\\n    COMPILER_INDEX_STORE_ENABLE=NO \\\n    -allowProvisioningUpdates \\\n    2>&1 | grep -E \"(error:|Build succeeded|Build FAILED)\" || true\nif [ -d \"${WATCH_APP}\" ]; then\n    echo \"Replacing Watch app with watchOS build...\"\n    rm -rf \"${EMBED_SRC}\"\n    cp -R \"${WATCH_APP}\" \"${EMBED_SRC}\"\nelse\n    echo \"error: watchOS Watch app not found at ${WATCH_APP}\" >&2\n    exit 1\nfi\n";
 		};
 		E2493DA12FBDE00000D1F89B /* Fix Embedded Watch UIDeviceFamily */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1017,6 +1027,18 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+/* Begin XCLocalSwiftPackageReference section */
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
+		};
+/* End XCLocalSwiftPackageReference section */
+/* Begin XCSwiftPackageProductDependency section */
+		78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FlutterGeneratedPluginSwiftPackage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 97C146E61CF9000F007C117D /* Project object */;
 }

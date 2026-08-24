@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'screens/calendar_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/workouts_screen.dart';
 import 'screens/schedule_screen.dart';
@@ -59,6 +60,7 @@ class _MainShellState extends State<MainShell> {
     DashboardScreen(),
     WorkoutsScreen(),
     ScheduleScreen(),
+    CalendarScreen(),
   ];
 
   @override
@@ -71,6 +73,7 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard_outlined),
@@ -83,9 +86,14 @@ class _MainShellState extends State<MainShell> {
             label: 'Workouts',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.event_repeat_outlined),
+            activeIcon: Icon(Icons.event_repeat),
+            label: 'Schedule',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.calendar_month_outlined),
             activeIcon: Icon(Icons.calendar_month),
-            label: 'Schedule',
+            label: 'Calendar',
           ),
         ],
       ),

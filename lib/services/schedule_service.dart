@@ -206,33 +206,40 @@ class ScheduleService {
 
   // ── Upcoming calculation ───────────────────────────────────────────────
 
-  Future<List<UpcomingWorkout>> getUpcomingWorkouts({int days = 28}) async {
+  /// Returns scheduled workouts for an arbitrary [start]..[end] date range
+  /// (both inclusive), applying the same skip/move exception rules as
+  /// [getUpcomingWorkouts]. Move exceptions whose new date lands outside
+  /// [start]..[end] are omitted.
+  Future<List<UpcomingWorkout>> getScheduledWorkoutsInRange(
+    DateTime start,
+    DateTime end,
+  ) async {
     final entries = await getScheduleEntries();
     if (entries.isEmpty) return [];
 
     final anchor = await getScheduleAnchorMonday();
-    final today = _normalise(DateTime.now());
+    final normStart = _normalise(start);
+    final normEnd = _normalise(end);
     final exceptionsMap = await _getExceptionsMap();
-    final upcoming = <UpcomingWorkout>[];
+    final result = <UpcomingWorkout>[];
     final addedMovedKeys = <String>{};
 
-    for (int i = 0; i < days; i++) {
-      final date = today.add(Duration(days: i));
-
+    var date = normStart;
+    while (!date.isAfter(normEnd)) {
       for (final entry in entries) {
         if (!_entryMatchesDate(entry, date, anchor)) continue;
 
         final exc = exceptionsMap[entry.id]?[date];
 
         if (exc == null) {
-          upcoming.add(UpcomingWorkout(date: date, entry: entry));
+          result.add(UpcomingWorkout(date: date, entry: entry));
         } else if (exc.newDate != null) {
           final newDate = _normalise(exc.newDate!);
           final key = '${entry.id}_${newDate.millisecondsSinceEpoch}';
-          final inWindow = !newDate.isBefore(today) &&
-              newDate.isBefore(today.add(Duration(days: days)));
+          final inWindow =
+              !newDate.isBefore(normStart) && !newDate.isAfter(normEnd);
           if (inWindow && !addedMovedKeys.contains(key)) {
-            upcoming.add(UpcomingWorkout(
+            result.add(UpcomingWorkout(
               date: newDate,
               entry: entry,
               isMoved: true,
@@ -243,10 +250,18 @@ class ScheduleService {
         }
         // Skip exception: do not add
       }
+      date = date.add(const Duration(days: 1));
     }
 
-    upcoming.sort((a, b) => a.date.compareTo(b.date));
-    return upcoming;
+    result.sort((a, b) => a.date.compareTo(b.date));
+    return result;
+  }
+
+  /// Returns scheduled workouts for the next [days] days starting from today.
+  Future<List<UpcomingWorkout>> getUpcomingWorkouts({int days = 28}) async {
+    final today = _normalise(DateTime.now());
+    final end = today.add(Duration(days: days - 1));
+    return getScheduledWorkoutsInRange(today, end);
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────
